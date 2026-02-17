@@ -1,46 +1,99 @@
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Serein</title>
-    <link rel="stylesheet" href="style.css" />
-  </head>
-  <body>
-    <main class="app">
-      <h1>Serein</h1>
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Serein</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="bg" aria-hidden="true"></div>
 
-      <section class="timer-controls" aria-label="Timer setup">
-        <label>
-          Minutes
+  <main class="app">
+    <header class="header">
+      <h1 class="title">Serein</h1>
+      <button id="settingsBtn" class="iconBtn" aria-label="Settings">⚙︎</button>
+    </header>
+
+    <section class="timer">
+      <div id="picker" class="picker">
+        <label class="pickCol">
+          <span class="pickLabel">Minutes</span>
           <select id="minutes" aria-label="Minutes"></select>
         </label>
-        <label>
-          Seconds
+
+        <div class="colon" aria-hidden="true">:</div>
+
+        <label class="pickCol">
+          <span class="pickLabel">Seconds</span>
           <select id="seconds" aria-label="Seconds"></select>
         </label>
-      </section>
+      </div>
 
-      <p id="display" class="display" aria-live="polite">00:00</p>
+      <div id="display" class="display">00:00</div>
 
-      <section class="actions" aria-label="Timer actions">
-        <button id="start" type="button">Start</button>
-        <button id="pause" type="button">Pause</button>
-        <button id="end" type="button">End</button>
-      </section>
+      <div class="actions">
+        <button id="start" class="btn primary">Start</button>
+        <button id="pause" class="btn">Pause</button>
+        <button id="end" class="btn danger">End</button>
+      </div>
 
-      <section class="history" aria-label="History">
-        <div class="history-filters">
-          <button type="button">Day</button>
-          <button type="button">Week</button>
-          <button type="button">Month</button>
-          <button type="button">All</button>
+      <div id="status" class="status" aria-live="polite"></div>
+    </section>
+
+    <section class="history">
+      <div class="historyTop">
+        <div class="seg">
+          <button class="segBtn" data-range="day">Day</button>
+          <button class="segBtn" data-range="week">Week</button>
+          <button class="segBtn" data-range="month">Month</button>
+          <button class="segBtn" data-range="all">All</button>
         </div>
-        <p class="total-label">Total time</p>
-        <p class="total-time" id="totalTime">00:00:00</p>
-      </section>
-    </main>
 
-    <script src="app.js"></script>
-  </body>
+        <div class="ringWrap" aria-hidden="true">
+          <svg viewBox="0 0 120 120" class="ring">
+            <circle class="ringBase" cx="60" cy="60" r="46"></circle>
+            <circle id="ringArc" class="ringArc" cx="60" cy="60" r="46"></circle>
+          </svg>
+        </div>
+      </div>
+
+      <p class="totalLabel">Total time</p>
+      <p id="total" class="total">00:00:00</p>
+    </section>
+
+    <dialog id="settings" class="settings">
+      <form method="dialog" class="settingsInner">
+        <div class="settingsHeader">
+          <h2>Settings</h2>
+          <button class="iconBtn" value="cancel" aria-label="Close">✕</button>
+        </div>
+
+        <label class="field">
+          <span>Completion notification</span>
+          <select id="notifyMode">
+            <option value="none">None</option>
+            <option value="sound">Sound</option>
+            <option value="vibrate">Vibrate</option>
+            <option value="both">Both</option>
+          </select>
+        </label>
+
+        <label class="field">
+          <span>Seconds step</span>
+          <select id="secondsStep">
+            <option value="5">5 seconds (default)</option>
+            <option value="1">1 second</option>
+          </select>
+        </label>
+
+        <div class="settingsFooter">
+          <button id="saveSettings" class="btn primary" value="default">Save</button>
+        </div>
+      </form>
+    </dialog>
+  </main>
+
+  <script src="app.js"></script>
+</body>
 </html>
