@@ -62,36 +62,39 @@
       <p id="total" class="total">00:00:00</p>
     </section>
 
-    <dialog id="settings" class="settings">
-      <form method="dialog" class="settingsInner">
-        <div class="settingsHeader">
-          <h2>Settings</h2>
-          <button class="iconBtn" value="cancel" aria-label="Close">✕</button>
-        </div>
+ <!-- Settings Modal (Safari-safe) -->
+<div id="settingsModal" class="modal" aria-hidden="true">
+  <div class="modalOverlay" data-close="1"></div>
 
-        <label class="field">
-          <span>Completion notification</span>
-          <select id="notifyMode">
-            <option value="none">None</option>
-            <option value="sound">Sound</option>
-            <option value="vibrate">Vibrate</option>
-            <option value="both">Both</option>
-          </select>
-        </label>
+  <div class="modalCard" role="dialog" aria-modal="true" aria-label="Settings">
+    <div class="modalHeader">
+      <h2>Settings</h2>
+      <button id="settingsClose" class="iconBtn" aria-label="Close">✕</button>
+    </div>
 
-        <label class="field">
-          <span>Seconds step</span>
-          <select id="secondsStep">
-            <option value="5">5 seconds (default)</option>
-            <option value="1">1 second</option>
-          </select>
-        </label>
+    <label class="field">
+      <span>Completion notification</span>
+      <select id="notifyMode">
+        <option value="none">None</option>
+        <option value="sound">Sound</option>
+        <option value="vibrate">Vibrate</option>
+        <option value="both">Both</option>
+      </select>
+    </label>
 
-        <div class="settingsFooter">
-          <button id="saveSettings" class="btn primary" value="default">Save</button>
-        </div>
-      </form>
-    </dialog>
+    <label class="field">
+      <span>Seconds step</span>
+      <select id="secondsStep">
+        <option value="5">5 seconds (default)</option>
+        <option value="1">1 second</option>
+      </select>
+    </label>
+
+    <div class="modalFooter">
+      <button id="saveSettings" class="btn primary">Save</button>
+    </div>
+  </div>
+</div>
   </main>
 
   <script src="app.js"></script>
