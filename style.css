@@ -220,3 +220,47 @@ select, .btn{
 }
 .field span{ color:#b9c1cf; font-size: .9rem; }
 .settingsFooter{ display:flex; justify-content: flex-end; }
+/* Modal (Safari-safe) */
+.modal{
+  position: fixed;
+  inset: 0;
+  display: none;
+  z-index: 999;
+}
+.modal.open{ display: block; }
+
+.modalOverlay{
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,.55);
+}
+
+.modalCard{
+  position: relative;
+  width: min(92vw, 28rem);
+  margin: 12vh auto 0;
+  border: 1px solid #26303a;
+  border-radius: 1rem;
+  background: rgba(10, 13, 17, .94);
+  color: #e7e9ee;
+  padding: 1rem;
+  display: grid;
+  gap: 1rem;
+  backdrop-filter: blur(10px);
+}
+
+.modalHeader{
+  display:flex;
+  align-items:center;
+  justify-content: space-between;
+}
+.modalHeader h2{
+  margin:0;
+  font-weight: 500;
+  letter-spacing: .06em;
+  font-size: 1.1rem;
+}
+.modalFooter{
+  display:flex;
+  justify-content: flex-end;
+}
