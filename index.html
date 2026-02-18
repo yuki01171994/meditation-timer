@@ -14,77 +14,130 @@
   <main class="app">
     <header class="header">
       <h1 class="title">Serein</h1>
-      <button id="settingsBtn" class="iconBtn" aria-label="Settings">⚙︎</button>
+      <div class="headerActions">
+        <div class="viewToggle">
+          <button id="viewTimer" class="toggleBtn active" title="Timer">Timer</button>
+          <button id="viewStats" class="toggleBtn" title="Statistics">Stats</button>
+        </div>
+        <button id="settingsBtn" class="iconBtn" aria-label="Settings">⚙︎</button>
+      </div>
     </header>
 
-    <section class="timer">
-      <div id="picker" class="picker">
-        <label class="pickCol">
-          <span class="pickLabel">Minutes</span>
-          <select id="minutes" aria-label="Minutes"></select>
-        </label>
+    <!-- Timer View -->
+    <div id="timerView">
+      <section class="timer">
+        <div id="picker" class="picker">
+          <label class="pickCol">
+            <span class="pickLabel">Minutes</span>
+            <select id="minutes" aria-label="Minutes"></select>
+          </label>
 
-        <div class="colon" aria-hidden="true">:</div>
+          <div class="colon" aria-hidden="true">:</div>
 
-        <label class="pickCol">
-          <span class="pickLabel">Seconds</span>
-          <select id="seconds" aria-label="Seconds"></select>
-        </label>
-      </div>
-
-      <div id="display" class="display">00:00</div>
-
-      <div class="actions">
-        <button id="start" class="btn primary">Start</button>
-        <button id="pause" class="btn">Pause</button>
-        <button id="end" class="btn danger">End</button>
-      </div>
-
-      <div id="status" class="status" aria-live="polite"></div>
-    </section>
-
-    <section class="history">
-      <div class="historyTop">
-        <div class="seg">
-          <button class="segBtn" data-range="day">Day</button>
-          <button class="segBtn" data-range="week">Week</button>
-          <button class="segBtn" data-range="month">Month</button>
-          <button class="segBtn" data-range="all">All</button>
+          <label class="pickCol">
+            <span class="pickLabel">Seconds</span>
+            <select id="seconds" aria-label="Seconds"></select>
+          </label>
         </div>
 
-        <div class="ringWrap" aria-hidden="true">
-          <svg viewBox="0 0 120 120" class="ring">
-            <circle class="ringBase" cx="60" cy="60" r="46"></circle>
-            <circle id="ringArc" class="ringArc" cx="60" cy="60" r="46"></circle>
-          </svg>
-        </div>
-      </div>
+        <div id="display" class="display">00:00</div>
 
-      <p class="totalLabel">Total time</p>
-      <p id="total" class="total">00:00:00</p>
-
-      <!-- Calendar & Details -->
-      <div id="calendarView" class="calendarView">
-        <div class="calHeader">
-          <button id="prevMonth" class="iconBtn" aria-label="Previous month">&lt;</button>
-          <span id="currentMonthLabel"></span>
-          <button id="nextMonth" class="iconBtn" aria-label="Next month">&gt;</button>
+        <div class="actions">
+          <button id="start" class="btn primary">Start</button>
+          <button id="pause" class="btn">Pause</button>
+          <button id="end" class="btn danger">End</button>
         </div>
 
-        <div class="weekdaysGrid">
-          <span>Mo</span><span>Tu</span><span>We</span><span>Th</span><span>Fr</span><span>Sa</span><span>Su</span>
-        </div>
-        <div id="calendarGrid" class="calendarGrid"></div>
+        <div id="status" class="status" aria-live="polite"></div>
+      </section>
 
-        <div id="dayDetailPanel" class="dayDetailPanel" hidden>
-          <div class="dayDetailHeader">
-            <h3 id="selectedDateLabel"></h3>
-            <span id="dayTotalTime" class="dayTotalTime"></span>
+      <section class="history">
+        <div class="historyTop">
+          <div class="seg">
+            <button class="segBtn" data-range="day">Day</button>
+            <button class="segBtn" data-range="week">Week</button>
+            <button class="segBtn" data-range="month">Month</button>
+            <button class="segBtn" data-range="all">All</button>
           </div>
-          <div id="daySessionsList" class="daySessionsList"></div>
+
+          <div class="ringWrap" aria-hidden="true">
+            <svg viewBox="0 0 120 120" class="ring">
+              <circle class="ringBase" cx="60" cy="60" r="46"></circle>
+              <circle id="ringArc" class="ringArc" cx="60" cy="60" r="46"></circle>
+            </svg>
+          </div>
         </div>
-      </div>
-    </section>
+
+        <p class="totalLabel">Total time</p>
+        <p id="total" class="total">00:00:00</p>
+
+        <!-- Calendar & Details -->
+        <div id="calendarView" class="calendarView">
+          <div class="calHeader">
+            <button id="prevMonth" class="iconBtn" aria-label="Previous month">&lt;</button>
+            <span id="currentMonthLabel"></span>
+            <button id="nextMonth" class="iconBtn" aria-label="Next month">&gt;</button>
+          </div>
+
+          <div class="weekdaysGrid">
+            <span>Mo</span><span>Tu</span><span>We</span><span>Th</span><span>Fr</span><span>Sa</span><span>Su</span>
+          </div>
+          <div id="calendarGrid" class="calendarGrid"></div>
+
+          <div id="dayDetailPanel" class="dayDetailPanel" hidden>
+            <div class="dayDetailHeader">
+              <h3 id="selectedDateLabel"></h3>
+              <span id="dayTotalTime" class="dayTotalTime"></span>
+            </div>
+            <div id="daySessionsList" class="daySessionsList"></div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- Analytics View -->
+    <div id="statsView" hidden>
+      <section class="analytics">
+        <div class="analyticsHeader">
+          <h2>Activity Analytics</h2>
+          <div class="seg chartSeg">
+            <button class="segBtn active" data-chart-range="day">Day</button>
+            <button class="segBtn" data-chart-range="week">Week</button>
+            <button class="segBtn" data-chart-range="month">Month</button>
+          </div>
+        </div>
+
+        <div class="chartCard">
+          <div class="chartHeader">
+            <span id="chartRangeLabel">Last 7 Days</span>
+            <span id="chartTotalTime" class="chartTotalTime">0h 0m</span>
+          </div>
+          <div class="barChartContainer">
+            <div id="barChart" class="barChart">
+              <!-- Bars will be injected by JS -->
+            </div>
+          </div>
+          <div id="barLabels" class="barLabels">
+            <!-- Labels will be injected by JS -->
+          </div>
+        </div>
+
+        <div class="statsSummary">
+          <div class="summaryItem">
+            <span class="summaryLabel">Daily Avg</span>
+            <span id="statDailyAvg" class="summaryValue">0m</span>
+          </div>
+          <div class="summaryItem">
+            <span class="summaryLabel">Best Day</span>
+            <span id="statBestDay" class="summaryValue">-</span>
+          </div>
+          <div class="summaryItem">
+            <span class="summaryLabel">Sessions</span>
+            <span id="statTotalCount" class="summaryValue">0</span>
+          </div>
+        </div>
+      </section>
+    </div>
 
     <!-- Settings Modal (Safari-safe) -->
     <div id="settingsModal" class="modal" aria-hidden="true">
