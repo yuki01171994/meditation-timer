@@ -8,6 +8,15 @@ document.addEventListener("DOMContentLoaded", () => {
     const pickerWrap = document.getElementById("picker");
     const display = document.getElementById("display");
     const statusEl = document.getElementById("status");
+    const timerContainer = document.querySelector(".timer");
+
+    function addPetals() { /* effect is now CSS-only via .timer.breathing */ }
+    function removePetals() {
+      if (!timerContainer) return;
+      timerContainer.querySelectorAll(".breathe-container").forEach(el => el.remove());
+    }
+
+
 
     if (!document.getElementById("start")) {
       throw new Error("UI Elements not found");
@@ -37,6 +46,20 @@ document.addEventListener("DOMContentLoaded", () => {
     const settingsCloseBtn = document.getElementById("settingsClose");
     const notifyModeSel = document.getElementById("notifyMode");
     const secondsStepSel = document.getElementById("secondsStep");
+
+    const timerView = document.getElementById("timerView");
+    const statsView = document.getElementById("statsView");
+    const viewTimerBtn = document.getElementById("viewTimer");
+    const viewStatsBtn = document.getElementById("viewStats");
+
+    const barChart = document.getElementById("barChart");
+    const barLabels = document.getElementById("barLabels");
+    const chartRangeLabel = document.getElementById("chartRangeLabel");
+    const chartTotalTime = document.getElementById("chartTotalTime");
+    const statDailyAvg = document.getElementById("statDailyAvg");
+    const statBestDay = document.getElementById("statBestDay");
+    const statTotalCount = document.getElementById("statTotalCount");
+    let currentChartRange = "day";
 
     // --------- Storage keys
     const SESSIONS_KEY = "serein.sessions.v1";
@@ -241,17 +264,23 @@ document.addEventListener("DOMContentLoaded", () => {
       lastRemainingSec = null;
       setPickerEnabled(false);
       setStatus("");
+      if (timerContainer) timerContainer.classList.add("breathing");
+      addPetals();
       stopTick();
       tick();
     }
+
 
     function pause() {
       if (state !== "running") return;
       pausedRemainingSec = Math.max(0, remainingSeconds());
       state = "paused";
       stopTick();
+      if (timerContainer) timerContainer.classList.remove("breathing");
+      removePetals();
       setStatus("Paused");
     }
+
 
     function end(interrupted = true) {
       // End: save as interrupted session if time elapsed > 0
@@ -281,12 +310,23 @@ document.addEventListener("DOMContentLoaded", () => {
       lastRemainingSec = null;
 
       setPickerEnabled(true);
+      if (timerContainer) timerContainer.classList.remove("breathing");
+      removePetals();
       setStatus("");
       resetFromInputs();
       refreshHistory();
+      renderAnalyticsChart(currentChartRange);
     }
 
+
     // ... complete() is below ...
+
+    function triggerRipple(type) {
+      const r = document.createElement("div");
+      r.className = `ripple ${type}`;
+      document.body.appendChild(r);
+      setTimeout(() => r.remove(), 1000);
+    }
 
     function playTickBeep() {
       try {
@@ -307,8 +347,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function fireTickNotice() {
       const mode = settings.notifyMode;
-      if (mode === "none" || mode === "vibrate") return; // Only play sound if sound enabled
-      playTickBeep();
+
+      // Visual feedback: Always trigger unless "none"
+      if (mode !== "none") {
+        triggerRipple("weak");
+      }
+
+      // Sound feedback
+      if (mode === "sound" || mode === "both") {
+        playTickBeep();
+      }
     }
 
     function complete() {
@@ -318,11 +366,20 @@ document.addEventListener("DOMContentLoaded", () => {
 
       stopTick();
       state = "holding";
+      if (timerContainer) timerContainer.classList.remove("breathing");
+      removePetals();
       setDisplay(0);
       setStatus("");
 
+
       // Fire notification immediately
       fireCompletionNotice();
+
+      // Visual feedback: Always trigger unless "none"
+      const mode = settings.notifyMode;
+      if (mode !== "none") {
+        triggerRipple("strong");
+      }
 
       if (elapsedSec > 0) {
         saveSession({
@@ -340,8 +397,10 @@ document.addEventListener("DOMContentLoaded", () => {
         startAtMs = null;
         endAtMs = null;
         pausedRemainingSec = 0;
+        lastRemainingSec = null;
 
         setPickerEnabled(true);
+        setStatus("");
         resetFromInputs();
         refreshHistory();
       }, COMPLETION_HOLD_MS);
@@ -437,6 +496,19 @@ document.addEventListener("DOMContentLoaded", () => {
       const sessions = loadSessions();
       sessions.push(session);
       localStorage.setItem(SESSIONS_KEY, JSON.stringify(sessions));
+      renderAnalyticsChart(currentChartRange);
+    }
+
+    function deleteSession(id) {
+      if (!confirm("Are you sure you want to delete this session?")) return;
+      let sessions = loadSessions();
+      sessions = sessions.filter(s => s.id !== id);
+      localStorage.setItem(SESSIONS_KEY, JSON.stringify(sessions));
+      refreshHistory();
+      renderAnalyticsChart(currentChartRange);
+      if (selectedDateStr) {
+        showDayDetails(selectedDateStr);
+      }
     }
 
     function startOfDay(d) {
@@ -615,12 +687,17 @@ document.addEventListener("DOMContentLoaded", () => {
           const el = document.createElement("div");
           el.className = "sessionItem";
           el.innerHTML = `
-        <span class="sessionTime">${timeStr}</span>
-        <div style="display:grid;">
-          <span class="sessionDur">${durStr}</span>
-        </div>
-        <span class="sessionStatus" style="color: ${statusColor}">${statusText}</span>
-      `;
+            <span class="sessionTime">${timeStr}</span>
+            <div style="display:grid;">
+              <span class="sessionDur">${durStr}</span>
+            </div>
+            <span class="sessionStatus" style="color: ${statusColor}">${statusText}</span>
+            <button class="deleteSessionBtn" title="Delete session">✕</button>
+          `;
+          el.querySelector(".deleteSessionBtn").addEventListener("click", (e) => {
+            e.stopPropagation();
+            deleteSession(s.id);
+          });
           daySessionsList.appendChild(el);
         });
       }
@@ -637,6 +714,137 @@ document.addEventListener("DOMContentLoaded", () => {
       if (calMonth > 11) { calMonth = 0; calYear++; }
       renderCalendar();
     });
+
+    // --------- View Switching
+    viewTimerBtn.addEventListener("click", () => {
+      timerView.hidden = false;
+      statsView.hidden = true;
+      viewTimerBtn.classList.add("active");
+      viewStatsBtn.classList.remove("active");
+    });
+
+    viewStatsBtn.addEventListener("click", () => {
+      timerView.hidden = true;
+      statsView.hidden = false;
+      viewTimerBtn.classList.remove("active");
+      viewStatsBtn.classList.add("active");
+      renderAnalyticsChart(currentChartRange);
+    });
+
+    // --------- Analytics Logic
+    document.querySelectorAll("[data-chart-range]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll("[data-chart-range]").forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+        currentChartRange = btn.dataset.chartRange;
+        renderAnalyticsChart(currentChartRange);
+      });
+    });
+
+    function renderAnalyticsChart(range) {
+      const sessions = loadSessions();
+      let data = [];
+      let labels = [];
+      let totalTime = 0;
+
+      const now = new Date();
+
+      if (range === "day") {
+        chartRangeLabel.textContent = "Last 7 Days";
+        for (let i = 6; i >= 0; i--) {
+          const d = new Date(now);
+          d.setDate(d.getDate() - i);
+          const key = d.toLocaleDateString("en-US", { weekday: "short" });
+          const daySum = sessions
+            .filter(s => startOfDay(new Date(s.startedAt)).getTime() === startOfDay(d).getTime())
+            .reduce((acc, s) => acc + (s.durationSeconds || 0), 0);
+          data.push(daySum);
+          labels.push(key);
+          totalTime += daySum;
+        }
+      } else if (range === "week") {
+        chartRangeLabel.textContent = "Last 4 Weeks";
+        for (let i = 3; i >= 0; i--) {
+          const start = new Date(now);
+          start.setDate(start.getDate() - (i * 7 + (start.getDay() || 7) - 1));
+          start.setHours(0, 0, 0, 0);
+          const end = new Date(start);
+          end.setDate(end.getDate() + 7);
+
+          const weekSum = sessions
+            .filter(s => {
+              const st = new Date(s.startedAt).getTime();
+              return st >= start.getTime() && st < end.getTime();
+            })
+            .reduce((acc, s) => acc + (s.durationSeconds || 0), 0);
+
+          data.push(weekSum);
+          labels.push(`W-${i}`);
+          totalTime += weekSum;
+        }
+      } else if (range === "month") {
+        chartRangeLabel.textContent = "Last 6 Months";
+        for (let i = 5; i >= 0; i--) {
+          const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+          const monthLabel = d.toLocaleDateString("en-US", { month: "short" });
+          const monthSum = sessions
+            .filter(s => {
+              const st = new Date(s.startedAt);
+              return st.getFullYear() === d.getFullYear() && st.getMonth() === d.getMonth();
+            })
+            .reduce((acc, s) => acc + (s.durationSeconds || 0), 0);
+          data.push(monthSum);
+          labels.push(monthLabel);
+          totalTime += monthSum;
+        }
+      }
+
+      // Render Bars
+      const max = Math.max(...data, 1);
+      barChart.innerHTML = "";
+      barLabels.innerHTML = "";
+
+      data.forEach((val, i) => {
+        const height = (val / max) * 100;
+        const wrapper = document.createElement("div");
+        wrapper.className = "barWrapper";
+
+        const h = Math.floor(val / 3600);
+        const m = Math.floor((val % 3600) / 60);
+        const timeDisplay = h > 0 ? `${h}h ${m}m` : `${m}m`;
+
+        wrapper.innerHTML = `
+          <div class="bar" style="height: ${height}%">
+            <span class="barValue">${timeDisplay}</span>
+          </div>
+        `;
+        barChart.appendChild(wrapper);
+
+        const lbl = document.createElement("div");
+        lbl.className = "barLabel";
+        lbl.textContent = labels[i];
+        barLabels.appendChild(lbl);
+      });
+
+      // Update Summary
+      const hTotal = Math.floor(totalTime / 3600);
+      const mTotal = Math.floor((totalTime % 3600) / 60);
+      chartTotalTime.textContent = `${hTotal}h ${mTotal}m`;
+
+      statTotalCount.textContent = sessions.length;
+
+      const avg = totalTime / data.length;
+      const mAvg = Math.floor(avg / 60);
+      statDailyAvg.textContent = `${mAvg}m`;
+
+      const best = Math.max(...data);
+      const hBest = Math.floor(best / 3600);
+      const mBest = Math.floor((best % 3600) / 60);
+      statBestDay.textContent = best > 0 ? `${hBest}h ${mBest}m` : "-";
+    }
+
+    // Initial render
+    renderAnalyticsChart(currentChartRange);
 
     // Update refreshHistory to include calendar
     function refreshHistory() {
